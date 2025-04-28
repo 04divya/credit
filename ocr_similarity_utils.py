@@ -7,6 +7,10 @@ import pytesseract
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer, util
+import re
+
+# You can set tesseract language model here, e.g., 'eng+msa' for English + Malay
+TESSERACT_LANGUAGES = 'eng+msa'
 
 def preprocess_image(image):
     image = np.array(image)
@@ -27,8 +31,34 @@ def extract_text_from_file(file):
 
     for page in images:
         processed = preprocess_image(page)
-        text += pytesseract.image_to_string(processed)
+        # Specify the language
+        text += pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
     return text
+
+def extract_course_content(text):
+    """
+    Extract only the 'Course Content' section from the full extracted text.
+    Assumes 'Course Content' (or equivalent in Malay) appears as a heading.
+    """
+    # You can expand these depending on common terms
+    start_keywords = ["Course Content", "Kandungan Kursus", "Sinopsis Kursus", "Course Synopsis"]
+    end_keywords = ["Assessment", "Penilaian", "Learning Outcome", "Hasil Pembelajaran"]
+
+    # Combine all start and end keywords into regex
+    start_pattern = "|".join(start_keywords)
+    end_pattern = "|".join(end_keywords)
+
+    # Search for the course content section
+    start_match = re.search(start_pattern, text, re.IGNORECASE)
+    end_match = re.search(end_pattern, text[start_match.end():], re.IGNORECASE) if start_match else None
+
+    if start_match:
+        start_idx = start_match.end()
+        end_idx = start_idx + end_match.start() if end_match else len(text)
+        course_content = text[start_idx:end_idx]
+        return course_content.strip()
+    else:
+        return "⚠️ Course Content section not found."
 
 def classify_document(text):
     UKM_KEYWORDS = ["Universiti Kebangsaan Malaysia", "UKM", "Fakulti", "Program", "Kod Kursus"]
