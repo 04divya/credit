@@ -76,23 +76,25 @@ def main():
     if uploaded_ukm and uploaded_ipts:
         with st.spinner("🔍 Extracting and comparing..."):
             # Extract and classify UKM document
-            ukm_text = extract_text_from_file(uploaded_ukm)
-            ukm_class = classify_document(ukm_text)
+            try:
+                ukm_text = extract_text_from_file(uploaded_ukm)
+                ukm_class = classify_document(ukm_text)
 
-            st.markdown("### 📘 UKM Syllabus Document")
-            st.info(ukm_class)
-            st.text_area("Extracted Text (UKM)", ukm_text, height=200)
+                st.markdown("### 📘 UKM Syllabus Document")
+                st.info(ukm_class)
+                st.text_area("Extracted Text (UKM)", ukm_text, height=200)
 
-            # Process and display similarity results for IPT documents
-            display_similarity_results(ukm_text, uploaded_ipts)
+                # Process and display similarity results for IPT documents
+                display_similarity_results(ukm_text, uploaded_ipts)
+            except Exception as e:
+                st.error(f"Error processing documents: {e}")
 
     # Reset and rerun button
     st.markdown("---")
     if st.button("🔁 Next Course / Reset"):
-        # Reset similarity results and rerun
         st.session_state.similarity_results = []
         st.session_state.reset_key += 1
-        st.experimental_rerun()  # Use experimental_rerun to properly reset app state
+        st.rerun()
 
     # Footer
     st.markdown("---")
