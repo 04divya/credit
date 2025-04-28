@@ -39,34 +39,37 @@ if "similarity_results" not in st.session_state:
 if "reset_key" not in st.session_state:
     st.session_state.reset_key = 0
 
-# Run similarity comparison
+# Handle file uploads safely
 if uploaded_ukm and uploaded_ipts:
-    with st.spinner("🔍 Extracting and comparing..."):
-        ukm_text = extract_text_from_file(uploaded_ukm)
-        ukm_class = classify_document(ukm_text)
+    try:
+        with st.spinner("🔍 Extracting and comparing..."):
+            ukm_text = extract_text_from_file(uploaded_ukm)
+            ukm_class = classify_document(ukm_text)
 
-        st.markdown("### 📘 UKM Syllabus Document")
-        st.info(ukm_class)
-        st.text_area("Extracted Text (UKM)", ukm_text, height=200)
+            st.markdown("### 📘 UKM Syllabus Document")
+            st.info(ukm_class)
+            st.text_area("Extracted Text (UKM)", ukm_text, height=200)
 
-        for ipt_file in uploaded_ipts:
-            ipt_text = extract_text_from_file(ipt_file)
-            ipt_class = classify_document(ipt_text)
+            for ipt_file in uploaded_ipts:
+                ipt_text = extract_text_from_file(ipt_file)
+                ipt_class = classify_document(ipt_text)
 
-            bert_score = calculate_bert_similarity(ukm_text, ipt_text)
-            tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
+                bert_score = calculate_bert_similarity(ukm_text, ipt_text)
+                tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
 
-            st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
-            st.info(ipt_class)
-            st.text_area("Extracted Text (IPT)", ipt_text, height=200)
-            st.write(f"**BERT Similarity:** {bert_score:.2f}%")
-            st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
+                st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
+                st.info(ipt_class)
+                st.text_area("Extracted Text (IPT)", ipt_text, height=200)
+                st.write(f"**BERT Similarity:** {bert_score:.2f}%")
+                st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
 
-            st.session_state.similarity_results.append({
-                "filename": ipt_file.name,
-                "bert": bert_score,
-                "tfidf": tfidf_score
-            })
+                st.session_state.similarity_results.append({
+                    "filename": ipt_file.name,
+                    "bert": bert_score,
+                    "tfidf": tfidf_score
+                })
+    except Exception as e:
+        st.error(f"An error occurred during file processing: {e}")
 
 # Reset and rerun button
 st.markdown("---")
