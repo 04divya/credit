@@ -7,7 +7,7 @@ import cv2
 import json
 from document_classifier import classify_document
 from ocr_similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity  # Add these imports
-
+from ocr_similarity_utils import extract_text_from_file
 
 # Set UKM Theme Colors
 UKM_RED = "#E60000"
@@ -28,6 +28,34 @@ with col2:
     st.markdown(f"<h5 style='color:{UKM_BLUE};'>Universiti Kebangsaan Malaysia</h5>", unsafe_allow_html=True)
 
 st.markdown("---")
+
+st.title("Syllabus Comparison via OCR")
+
+# File uploaders for two syllabus files
+file1 = st.file_uploader("Upload Syllabus 1", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
+file2 = st.file_uploader("Upload Syllabus 2", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
+
+if file1 and file2:
+    if st.button("Compare Syllabi"):
+        # Extract text from each file
+        text1 = extract_text_from_file(file1)
+        text2 = extract_text_from_file(file2)
+
+        # Handle extraction failures
+        if not text1:
+            st.error("Unable to extract text from the first file.")
+        if not text2:
+            st.error("Unable to extract text from the second file.")
+        
+        # Only compute similarity if both extractions succeeded
+        if text1 and text2:
+            # Proceed with similarity calculations (TF-IDF, BERT, etc.)
+            # For example:
+            # tfidf_score = compute_tfidf_similarity(text1, text2)
+            # bert_score = compute_bert_similarity(text1, text2)
+            # Display results...
+            st.success("Text extracted successfully from both files.")
+            # (Display similarity scores here)
 
 # Upload files
 st.markdown(f"<h3 style='color:{UKM_RED};'>📄 Upload Syllabus Documents</h3>", unsafe_allow_html=True)
