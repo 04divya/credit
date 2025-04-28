@@ -5,8 +5,9 @@ from pdf2image import convert_from_bytes
 import numpy as np
 import cv2
 import json
-from sentence_transformers import SentenceTransformer, util
 from document_classifier import classify_document
+from ocr_similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity  # Add these imports
+
 
 # Set UKM Theme Colors
 UKM_RED = "#E60000"
