@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import json
 from sentence_transformers import SentenceTransformer, util
-from ocr_similarity_utils import classify_document
+import classify_document
 
 # Set UKM Theme Colors
 UKM_RED = "#E60000"
