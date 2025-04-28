@@ -5,9 +5,7 @@ from pdf2image import convert_from_bytes
 import numpy as np
 import cv2
 from sentence_transformers import SentenceTransformer, util
-
-import os
-print(os.getcwd())  # Check the current directory
+from ocr_similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity, extract_text_from_file, classify_document
 
 # Set UKM Theme Colors
 UKM_RED = "#E60000"
