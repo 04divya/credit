@@ -21,7 +21,7 @@ st.set_page_config(
 # Title and Logo
 col1, col2 = st.columns([1, 6])
 with col1:
-    st.image("https://raw.githubusercontent.com/khaliesahazmin/DataExtraction/main/ukm_logo.png/logo_UKM.png", width=80)
+    st.image("https://raw.githubusercontent.com/khaliesahazmin/DataExtraction/main/logo_UKM.png", width=80)
 with col2:
     st.markdown(f"<h1 style='color:{UKM_RED};'>Transfer Credit Checker System</h1>", unsafe_allow_html=True)
     st.markdown(f"<h5 style='color:{UKM_BLUE};'>Universiti Kebangsaan Malaysia</h5>", unsafe_allow_html=True)
