@@ -39,6 +39,30 @@ if "similarity_results" not in st.session_state:
 if "reset_key" not in st.session_state:
     st.session_state.reset_key = 0
 
+# Function to extract text from PDF or image file
+def extract_text_from_file(file):
+    """
+    Extracts text from an image or PDF file.
+    For PDFs, converts each page into images and processes them with OCR.
+    """
+    text = ""
+    try:
+        if file.type == "application/pdf":
+            images = convert_from_bytes(file.read(), 400)
+        else:
+            image = Image.open(file)
+            images = [image]
+
+        for page in images:
+            processed = preprocess_image(page)
+            # Specify the language for OCR
+            text += pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
+        return text
+    except Exception as e:
+        print(f"Error in extracting text from file: {e}")
+        return "⚠️ Error processing the file."
+
+
 # Handle file uploads safely
 if uploaded_ukm and uploaded_ipts:
     try:
