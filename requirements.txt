@@ -9,3 +9,4 @@ scikit-learn
 pymupdf
 torch
 datasets
+ocr_similarity_utils
