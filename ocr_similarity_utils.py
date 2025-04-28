@@ -8,12 +8,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer, util
 import re
-
-# You can set tesseract language model here, e.g., 'eng+msa' for English + Malay
-TESSERACT_LANGUAGES = 'eng+msa'
+import random
+from datasets import Dataset
 
 # Load the BERT model once to avoid reloading it multiple times
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
+TESSERACT_LANGUAGES = 'eng+msa'
 
 def preprocess_image(image):
     """
@@ -80,27 +81,29 @@ def extract_course_content(text):
         print(f"Error in extracting course content: {e}")
         return "⚠️ Error extracting course content."
 
-def classify_document(text):
+def generate_syllabus_pairs(text):
     """
-    Classifies the document based on keywords found in the text.
-    Determines if the syllabus is from UKM or another institution.
+    Generates pairs of syllabus content for similarity comparison.
     """
-    UKM_KEYWORDS = ["Universiti Kebangsaan Malaysia", "UKM", "Fakulti", "Program", "Kod Kursus"]
-    OTHER_KEYWORDS = ["Kolej", "Politeknik", "Universiti Teknologi", "Diploma", "Institute", "Akademi", "MARA", "UITM", "UTM", "UM", "UniMAP", "Malaysian Institute"]
-
-    try:
-        ukm_hits = sum([1 for word in UKM_KEYWORDS if word.lower() in text.lower()])
-        other_hits = sum([1 for word in OTHER_KEYWORDS if word.lower() in text.lower()])
-        
-        if ukm_hits > other_hits:
-            return "✅ Detected as UKM Syllabus"
-        elif other_hits > ukm_hits:
-            return "🏫 Detected as Other Institute/Diploma Syllabus"
-        else:
-            return "⚠️ Institution Type Could Not Be Determined"
-    except Exception as e:
-        print(f"Error in document classification: {e}")
-        return "⚠️ Classification failed."
+    # Extract course content
+    course_content = extract_course_content(text)
+    
+    # Split the course content into smaller sections based on punctuation or logical parts
+    sections = re.split(r'(\.|\,|\n)', course_content)
+    
+    # Clean and organize sections into pairs
+    clean_sections = [s.strip() for s in sections if s.strip()]
+    
+    # Ensure there are enough sections to form pairs
+    if len(clean_sections) < 2:
+        return []
+    
+    pairs = []
+    for i in range(len(clean_sections) - 1):
+        for j in range(i + 1, len(clean_sections)):
+            pairs.append((clean_sections[i], clean_sections[j]))
+    
+    return pairs
 
 def calculate_bert_similarity(text1, text2):
     """
@@ -127,3 +130,30 @@ def calculate_tfidf_similarity(text1, text2):
     except Exception as e:
         print(f"Error in calculating TF-IDF similarity: {e}")
         return 0.0
+
+def create_custom_dataset(file):
+    """
+    Creates a custom dataset from a PDF file with syllabus content and calculates similarities.
+    """
+    # Extract text from file
+    text = extract_text_from_file(file)
+
+    # Generate syllabus pairs
+    pairs = generate_syllabus_pairs(text)
+    
+    # Create a dataset with similarities
+    dataset = []
+    for pair in pairs:
+        # Calculate similarities using both BERT and TF-IDF
+        bert_similarity = calculate_bert_similarity(pair[0], pair[1])
+        tfidf_similarity = calculate_tfidf_similarity(pair[0], pair[1])
+
+        # Simulate document similarity for fine-tuning
+        dataset.append({
+            "sentence1": pair[0],
+            "sentence2": pair[1],
+            "bert_similarity": bert_similarity,
+            "tfidf_similarity": tfidf_similarity
+        })
+    
+    return dataset
