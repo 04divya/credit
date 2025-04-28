@@ -74,7 +74,8 @@ st.markdown("---")
 if st.button("🔁 Next Course / Reset"):
     st.session_state.similarity_results = []
     st.session_state.reset_key += 1
-    st.experimental_rerun()
+    st.rerun()
+
 
 # Footer
 st.markdown("---")
