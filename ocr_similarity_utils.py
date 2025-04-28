@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer, util
 import re
 import random
 from datasets import Dataset
+import calculate_bert_similarity, calculate_tfidf_similarity, extract_text_from_file, classify_document
 
 # Load the BERT model once to avoid reloading it multiple times
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
