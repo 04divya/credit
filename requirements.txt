@@ -8,5 +8,3 @@ sentence-transformers
 scikit-learn
 pymupdf
 torch
-poppler-utils
-tesseract-ocr
