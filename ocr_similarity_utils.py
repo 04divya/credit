@@ -44,6 +44,64 @@ def preprocess_image(image):
         print(f"Error in preprocessing image: {e}")
         return image
 
+def extract_text_from_file(uploaded_file):
+    """
+    Extract text from an uploaded PDF or image file using Tesseract OCR.
+    Returns the extracted text (string) on success, or None if extraction fails.
+    """
+    try:
+        file_bytes = uploaded_file.read()
+        file_extension = uploaded_file.name.split('.')[-1].lower()
+        text = ""
+        
+        if file_extension == 'pdf':
+            try:
+                # Convert PDF to a list of PIL images (one per page)
+                pages = convert_from_bytes(file_bytes)
+            except Exception:
+                # PDF conversion failed
+                return None
+
+            if not pages:
+                # No pages found in PDF
+                return None
+
+            # OCR each page
+            for page in pages:
+                # Ensure image is in RGB and convert to grayscale OpenCV image
+                open_cv_image = np.array(page.convert('RGB'))
+                gray_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2GRAY)
+                # OCR the image with Tesseract (English + Malay)
+                text_page = pytesseract.image_to_string(
+                    Image.fromarray(gray_image), 
+                    lang='eng+msa'
+                )
+                text += text_page + "\n"
+        
+        elif file_extension in ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff']:
+            # Decode image bytes into OpenCV image
+            np_arr = np.frombuffer(file_bytes, np.uint8)
+            cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            if cv_image is None:
+                return None
+            # Convert to grayscale for OCR
+            gray_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+            text = pytesseract.image_to_string(Image.fromarray(gray_image), lang='eng+msa')
+        
+        else:
+            # Unsupported file type
+            return None
+
+        # If OCR returns empty or whitespace-only text, treat as failure
+        if not text or not text.strip():
+            return None
+
+        return text.strip()
+
+    except Exception:
+        # Any unexpected error during processing
+        return None
+        
 def extract_text_from_file(file):
     """
     Extracts text from an image or PDF file.
