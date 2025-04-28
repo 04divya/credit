@@ -77,25 +77,4 @@ def main():
         with st.spinner("🔍 Extracting and comparing..."):
             # Extract and classify UKM document
             ukm_text = extract_text_from_file(uploaded_ukm)
-            ukm_class = classify_document(ukm_text)
-
-            st.markdown("### 📘 UKM Syllabus Document")
-            st.info(ukm_class)
-            st.text_area("Extracted Text (UKM)", ukm_text, height=200)
-
-            # Process and display similarity results for IPT documents
-            display_similarity_results(ukm_text, uploaded_ipts)
-
-    # Reset and rerun button
-    st.markdown("---")
-    if st.button("🔁 Next Course / Reset"):
-        st.session_state.similarity_results = []
-        st.session_state.reset_key += 1
-        st.rerun()
-
-    # Footer
-    st.markdown("---")
-    st.markdown(f"<p style='text-align:center;color:{UKM_BLUE};'>© 2025 Universiti Kebangsaan Malaysia | Transfer Credit Checker</p>", unsafe_allow_html=True)
-
-if __name__ == "__main__":
-    main()
+            ukm
