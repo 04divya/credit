@@ -141,19 +141,25 @@ def create_custom_dataset(file):
     # Generate syllabus pairs
     pairs = generate_syllabus_pairs(text)
     
-    # Create a dataset with similarities
-    dataset = []
+    # Create a list to store the data for the dataset
+    dataset = {
+        'sentence1': [],
+        'sentence2': [],
+        'bert_similarity': [],
+        'tfidf_similarity': []
+    }
+
+    # Fill the dataset with data
     for pair in pairs:
         # Calculate similarities using both BERT and TF-IDF
         bert_similarity = calculate_bert_similarity(pair[0], pair[1])
         tfidf_similarity = calculate_tfidf_similarity(pair[0], pair[1])
 
-        # Simulate document similarity for fine-tuning
-        dataset.append({
-            "sentence1": pair[0],
-            "sentence2": pair[1],
-            "bert_similarity": bert_similarity,
-            "tfidf_similarity": tfidf_similarity
-        })
+        # Add data to dataset
+        dataset['sentence1'].append(pair[0])
+        dataset['sentence2'].append(pair[1])
+        dataset['bert_similarity'].append(bert_similarity)
+        dataset['tfidf_similarity'].append(tfidf_similarity)
     
-    return dataset
+    # Convert to a Hugging Face Dataset
+    return Dataset.from_dict(dataset)
