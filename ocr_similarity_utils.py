@@ -74,7 +74,8 @@ def classify_document(text):
         return "⚠️ Institution Type Could Not Be Determined"
 
 def calculate_bert_similarity(text1, text2):
-    model = SentenceTransformer('all-mpnet-base-v2')
+    # Use a multilingual model
+    model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
     embeddings1 = model.encode(text1)
     embeddings2 = model.encode(text2)
     cosine_sim = util.cos_sim(embeddings1, embeddings2)
