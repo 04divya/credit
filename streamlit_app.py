@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import json
 from document_classifier import classify_document
-from ocr_similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity  # Add these imports
+from ocr_similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity
 from ocr_similarity_utils import extract_text_from_file
 
 # Set UKM Theme Colors
@@ -31,38 +31,10 @@ st.markdown("---")
 
 st.title("Syllabus Comparison via OCR")
 
-# File uploaders for two syllabus files
-file1 = st.file_uploader("Upload Syllabus 1", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
-file2 = st.file_uploader("Upload Syllabus 2", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
-
-if file1 and st.button("Analyze Syllabus 1" if not file2 else "Compare Syllabi"):
-    text1 = extract_text_from_file(file1)
-    if not text1:
-        st.error("Unable to extract text from the first file.")
-    else:
-        st.success("Text extracted from Syllabus 1.")
-        st.text_area("Extracted Text (Syllabus 1)", text1, height=200)
-
-        if file2:
-            text2 = extract_text_from_file(file2)
-            if not text2:
-                st.error("Unable to extract text from the second file.")
-            else:
-                st.success("Text extracted from Syllabus 2.")
-                st.text_area("Extracted Text (Syllabus 2)", text2, height=200)
-
-                # Similarity calculation if both texts are valid
-                bert_score = calculate_bert_similarity(text1, text2)
-                tfidf_score = calculate_tfidf_similarity(text1, text2)
-
-                st.write(f"**BERT Similarity:** {bert_score:.2f}%")
-                st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
-
-
 # Upload files
 st.markdown(f"<h3 style='color:{UKM_RED};'>📄 Upload Syllabus Documents</h3>", unsafe_allow_html=True)
 uploaded_ukm = st.file_uploader("Upload UKM Syllabus (PDF/Image)", type=['pdf', 'png', 'jpg', 'jpeg'], key="ukm_file")
-uploaded_ipts = st.file_uploader("Upload IPT Syllabuses (PDF/Image)", type=['pdf', 'png', 'jpg', 'jpeg'], accept_multiple_files=True, key="ipt_files")
+uploaded_ipts = st.file_uploader("Upload IPT Syllabus Documents (PDF/Image)", type=['pdf', 'png', 'jpg', 'jpeg'], accept_multiple_files=True, key="ipt_files")
 
 # State initialization
 if "similarity_results" not in st.session_state:
@@ -73,10 +45,6 @@ if "reset_key" not in st.session_state:
 
 # Function to extract text from PDF or image file
 def extract_text_from_file(file):
-    """
-    Extracts text from an image or PDF file.
-    For PDFs, converts each page into images and processes them with OCR.
-    """
     text = ""
     try:
         if file.type == "application/pdf":
@@ -87,45 +55,57 @@ def extract_text_from_file(file):
 
         for page in images:
             processed = preprocess_image(page)
-            # Specify the language for OCR
-            text += pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
+            text += pytesseract.image_to_string(processed, lang="eng")
         return text
     except Exception as e:
         print(f"Error in extracting text from file: {e}")
-        return "⚠️ Error processing the file."
+        return ""
 
+# Preprocessing function (ensure this exists)
+def preprocess_image(image):
+    img = np.array(image.convert('L'))
+    img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 15)
+    return img
 
 # Handle file uploads safely
 if uploaded_ukm and uploaded_ipts:
-    try:
-        with st.spinner("🔍 Extracting and comparing..."):
-            ukm_text = extract_text_from_file(uploaded_ukm)
-            ukm_class = classify_document(ukm_text)
+    if len(uploaded_ipts) == 0:
+        st.warning("Please upload at least one IPT syllabus file.")
+    else:
+        try:
+            with st.spinner("🔍 Extracting and comparing..."):
+                ukm_text = extract_text_from_file(uploaded_ukm)
+                if not ukm_text:
+                    st.error("Unable to extract text from the UKM syllabus.")
+                else:
+                    ukm_class = classify_document(ukm_text)
+                    st.markdown("### 📘 UKM Syllabus Document")
+                    st.info(ukm_class)
+                    st.text_area("Extracted Text (UKM)", ukm_text, height=200)
 
-            st.markdown("### 📘 UKM Syllabus Document")
-            st.info(ukm_class)
-            st.text_area("Extracted Text (UKM)", ukm_text, height=200)
+                    for ipt_file in uploaded_ipts:
+                        ipt_text = extract_text_from_file(ipt_file)
+                        if not ipt_text:
+                            st.warning(f"Unable to extract text from IPT file: {ipt_file.name}")
+                            continue
 
-            for ipt_file in uploaded_ipts:
-                ipt_text = extract_text_from_file(ipt_file)
-                ipt_class = classify_document(ipt_text)
+                        ipt_class = classify_document(ipt_text)
+                        bert_score = calculate_bert_similarity(ukm_text, ipt_text)
+                        tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
 
-                bert_score = calculate_bert_similarity(ukm_text, ipt_text)
-                tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
+                        st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
+                        st.info(ipt_class)
+                        st.text_area("Extracted Text (IPT)", ipt_text, height=200)
+                        st.write(f"**BERT Similarity:** {bert_score:.2f}%")
+                        st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
 
-                st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
-                st.info(ipt_class)
-                st.text_area("Extracted Text (IPT)", ipt_text, height=200)
-                st.write(f"**BERT Similarity:** {bert_score:.2f}%")
-                st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
-
-                st.session_state.similarity_results.append({
-                    "filename": ipt_file.name,
-                    "bert": bert_score,
-                    "tfidf": tfidf_score
-                })
-    except Exception as e:
-        st.error(f"An error occurred during file processing: {e}")
+                        st.session_state.similarity_results.append({
+                            "filename": ipt_file.name,
+                            "bert": bert_score,
+                            "tfidf": tfidf_score
+                        })
+        except Exception as e:
+            st.error(f"An error occurred during file processing: {e}")
 
 # Reset and rerun button
 st.markdown("---")
@@ -133,7 +113,6 @@ if st.button("🔁 Next Course / Reset"):
     st.session_state.similarity_results = []
     st.session_state.reset_key += 1
     st.rerun()
-
 
 # Footer
 st.markdown("---")
