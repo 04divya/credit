@@ -35,27 +35,29 @@ st.title("Syllabus Comparison via OCR")
 file1 = st.file_uploader("Upload Syllabus 1", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
 file2 = st.file_uploader("Upload Syllabus 2", type=["pdf", "png", "jpg", "jpeg", "bmp", "gif", "tiff"])
 
-if file1 and file2:
-    if st.button("Compare Syllabi"):
-        # Extract text from each file
-        text1 = extract_text_from_file(file1)
-        text2 = extract_text_from_file(file2)
+if file1 and st.button("Analyze Syllabus 1" if not file2 else "Compare Syllabi"):
+    text1 = extract_text_from_file(file1)
+    if not text1:
+        st.error("Unable to extract text from the first file.")
+    else:
+        st.success("Text extracted from Syllabus 1.")
+        st.text_area("Extracted Text (Syllabus 1)", text1, height=200)
 
-        # Handle extraction failures
-        if not text1:
-            st.error("Unable to extract text from the first file.")
-        if not text2:
-            st.error("Unable to extract text from the second file.")
-        
-        # Only compute similarity if both extractions succeeded
-        if text1 and text2:
-            # Proceed with similarity calculations (TF-IDF, BERT, etc.)
-            # For example:
-            # tfidf_score = compute_tfidf_similarity(text1, text2)
-            # bert_score = compute_bert_similarity(text1, text2)
-            # Display results...
-            st.success("Text extracted successfully from both files.")
-            # (Display similarity scores here)
+        if file2:
+            text2 = extract_text_from_file(file2)
+            if not text2:
+                st.error("Unable to extract text from the second file.")
+            else:
+                st.success("Text extracted from Syllabus 2.")
+                st.text_area("Extracted Text (Syllabus 2)", text2, height=200)
+
+                # Similarity calculation if both texts are valid
+                bert_score = calculate_bert_similarity(text1, text2)
+                tfidf_score = calculate_tfidf_similarity(text1, text2)
+
+                st.write(f"**BERT Similarity:** {bert_score:.2f}%")
+                st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
+
 
 # Upload files
 st.markdown(f"<h3 style='color:{UKM_RED};'>📄 Upload Syllabus Documents</h3>", unsafe_allow_html=True)
