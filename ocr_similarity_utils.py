@@ -22,86 +22,17 @@ def preprocess_image(image):
     Converts to grayscale, applies thresholding, denoising, and sharpening.
     """
     try:
-        # Convert to numpy array if the image is in PIL format
         image = np.array(image)
-
-        # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-
-        # Thresholding to binarize the image
         _, binary = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
-
-        # Denoising the image
         denoised = cv2.medianBlur(binary, 3)
-
-        # Sharpening the image
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         sharpened = cv2.morphologyEx(denoised, cv2.MORPH_GRADIENT, kernel)
-
         return Image.fromarray(sharpened)
-
     except Exception as e:
         print(f"Error in preprocessing image: {e}")
         return image
 
-def extract_text_from_file(uploaded_file):
-    """
-    Extract text from an uploaded PDF or image file using Tesseract OCR.
-    Returns the extracted text (string) on success, or None if extraction fails.
-    """
-    try:
-        file_bytes = uploaded_file.read()
-        file_extension = uploaded_file.name.split('.')[-1].lower()
-        text = ""
-        
-        if file_extension == 'pdf':
-            try:
-                # Convert PDF to a list of PIL images (one per page)
-                pages = convert_from_bytes(file_bytes)
-            except Exception:
-                # PDF conversion failed
-                return None
-
-            if not pages:
-                # No pages found in PDF
-                return None
-
-            # OCR each page
-            for page in pages:
-                # Ensure image is in RGB and convert to grayscale OpenCV image
-                open_cv_image = np.array(page.convert('RGB'))
-                gray_image = cv2.cvtColor(open_cv_image, cv2.COLOR_RGB2GRAY)
-                # OCR the image with Tesseract (English + Malay)
-                text_page = pytesseract.image_to_string(
-                    Image.fromarray(gray_image), 
-                    lang='eng+msa'
-                )
-                text += text_page + "\n"
-        
-        elif file_extension in ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff']:
-            # Decode image bytes into OpenCV image
-            np_arr = np.frombuffer(file_bytes, np.uint8)
-            cv_image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-            if cv_image is None:
-                return None
-            # Convert to grayscale for OCR
-            gray_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-            text = pytesseract.image_to_string(Image.fromarray(gray_image), lang='eng+msa')
-        
-        else:
-            # Unsupported file type
-            return None
-
-        # If OCR returns empty or whitespace-only text, treat as failure
-        if not text or not text.strip():
-            return None
-
-        return text.strip()
-
-    except Exception:
-        # Any unexpected error during processing
-        return None
-        
 def extract_text_from_file(file):
     """
     Extracts text from an image or PDF file.
@@ -120,7 +51,6 @@ def extract_text_from_file(file):
             text += pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
 
         return text
-
     except Exception as e:
         print(f"Error in extracting text from file: {e}")
         return ""
@@ -128,7 +58,6 @@ def extract_text_from_file(file):
 def extract_course_content(text):
     """
     Extracts the 'Course Content' section from the text based on predefined headings.
-    Uses regular expressions for flexibility in matching headings.
     """
     start_keywords = ["Course Content", "Kandungan Kursus", "Sinopsis Kursus", "Course Synopsis"]
     end_keywords = ["Assessment", "Penilaian", "Learning Outcome", "Hasil Pembelajaran"]
@@ -147,7 +76,6 @@ def extract_course_content(text):
 
         course_content = text[start_idx:end_idx]
         return course_content.strip() if course_content.strip() else "⚠️ Course Content is empty."
-
     except Exception as e:
         print(f"Error in extracting course content: {e}")
         return "⚠️ Error extracting course content."
@@ -156,22 +84,14 @@ def generate_syllabus_pairs(text):
     """
     Generates pairs of syllabus content for similarity comparison.
     """
-    # Extract course content
     course_content = extract_course_content(text)
-
-    # Split the course content into logical sections
     sections = re.split(r'(\.|\,|\n)', course_content)
-
-    # Clean and organize sections into pairs
     clean_sections = [s.strip() for s in sections if s.strip()]
 
-    # Ensure there are enough sections to form pairs
     if len(clean_sections) < 2:
         return []
 
-    # Create pairs of sections
     pairs = [(clean_sections[i], clean_sections[j]) for i in range(len(clean_sections) - 1) for j in range(i + 1, len(clean_sections))]
-    
     return pairs
 
 def calculate_bert_similarity(text1, text2):
@@ -202,15 +122,11 @@ def calculate_tfidf_similarity(text1, text2):
 
 def create_custom_dataset(file):
     """
-    Creates a custom dataset from a PDF file with syllabus content and calculates similarities.
+    Creates a custom dataset from a PDF or image file with syllabus content and calculates similarities.
     """
-    # Extract text from file
     text = extract_text_from_file(file)
-
-    # Generate syllabus pairs
     pairs = generate_syllabus_pairs(text)
 
-    # Initialize dataset dictionary
     dataset = {
         'sentence1': [],
         'sentence2': [],
@@ -218,7 +134,6 @@ def create_custom_dataset(file):
         'tfidf_similarity': []
     }
 
-    # Add data to dataset
     for pair in pairs:
         bert_similarity = calculate_bert_similarity(pair[0], pair[1])
         tfidf_similarity = calculate_tfidf_similarity(pair[0], pair[1])
@@ -228,5 +143,4 @@ def create_custom_dataset(file):
         dataset['bert_similarity'].append(bert_similarity)
         dataset['tfidf_similarity'].append(tfidf_similarity)
 
-    # Convert to a Hugging Face Dataset
     return Dataset.from_dict(dataset)
