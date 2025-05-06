@@ -3,6 +3,10 @@ from utils.file_utils import extract_text_from_file
 from utils.similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity
 from utils.classification import classify_document
 from PIL import Image
+from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('all-mpnet-base-v2')
+model.save('./models/all-mpnet-base-v2')
+
 
 # --- Configuration ---
 UKM_RED = "#E60000"
