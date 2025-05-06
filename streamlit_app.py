@@ -67,45 +67,48 @@ def preprocess_image(image):
     img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 15)
     return img
 
-# Handle file uploads safely
+
+# Submit button to trigger processing
 if uploaded_ukm and uploaded_ipts:
-    if len(uploaded_ipts) == 0:
-        st.warning("Please upload at least one IPT syllabus file.")
-    else:
-        try:
-            with st.spinner("🔍 Extracting and comparing..."):
-                ukm_text = extract_text_from_file(uploaded_ukm)
-                if not ukm_text:
-                    st.error("Unable to extract text from the UKM syllabus.")
-                else:
-                    ukm_class = classify_document(ukm_text)
-                    st.markdown("### 📘 UKM Syllabus Document")
-                    st.info(ukm_class)
-                    st.text_area("Extracted Text (UKM)", ukm_text, height=200)
+    if st.button("🚀 Submit to Analyze"):
+        if len(uploaded_ipts) == 0:
+            st.warning("Please upload at least one IPT syllabus file.")
+        else:
+            try:
+                with st.spinner("🔍 Extracting and comparing..."):
+                    ukm_text = extract_text_from_file(uploaded_ukm)
+                    if not ukm_text:
+                        st.error("Unable to extract text from the UKM syllabus.")
+                    else:
+                        ukm_class = classify_document(ukm_text)
+                        st.markdown("### 📘 UKM Syllabus Document")
+                        st.info(ukm_class)
+                        st.text_area("Extracted Text (UKM)", ukm_text, height=200)
 
-                    for ipt_file in uploaded_ipts:
-                        ipt_text = extract_text_from_file(ipt_file)
-                        if not ipt_text:
-                            st.warning(f"Unable to extract text from IPT file: {ipt_file.name}")
-                            continue
+                        for ipt_file in uploaded_ipts:
+                            ipt_text = extract_text_from_file(ipt_file)
+                            if not ipt_text:
+                                st.warning(f"Unable to extract text from IPT file: {ipt_file.name}")
+                                continue
 
-                        ipt_class = classify_document(ipt_text)
-                        bert_score = calculate_bert_similarity(ukm_text, ipt_text)
-                        tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
+                            ipt_class = classify_document(ipt_text)
+                            bert_score = calculate_bert_similarity(ukm_text, ipt_text)
+                            tfidf_score = calculate_tfidf_similarity(ukm_text, ipt_text)
 
-                        st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
-                        st.info(ipt_class)
-                        st.text_area("Extracted Text (IPT)", ipt_text, height=200)
-                        st.write(f"**BERT Similarity:** {bert_score:.2f}%")
-                        st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
+                            st.markdown(f"### 🏫 IPT Document: {ipt_file.name}")
+                            st.info(ipt_class)
+                            st.text_area("Extracted Text (IPT)", ipt_text, height=200)
+                            st.write(f"**BERT Similarity:** {bert_score:.2f}%")
+                            st.write(f"**TF-IDF Similarity:** {tfidf_score:.2f}%")
 
-                        st.session_state.similarity_results.append({
-                            "filename": ipt_file.name,
-                            "bert": bert_score,
-                            "tfidf": tfidf_score
-                        })
-        except Exception as e:
-            st.error(f"An error occurred during file processing: {e}")
+                            st.session_state.similarity_results.append({
+                                "filename": ipt_file.name,
+                                "bert": bert_score,
+                                "tfidf": tfidf_score
+                            })
+            except Exception as e:
+                st.error(f"An error occurred during file processing: {e}")
+
 
 # Reset and rerun button
 st.markdown("---")
