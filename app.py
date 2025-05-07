@@ -9,15 +9,9 @@ from utils.file_utils import extract_text_from_file
 from utils.similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity
 from utils.classification import classify_document
 from PIL import Image
-from sentence_transformers import SentenceTransformer
-model_path = 'models/all-mpnet-base-v2-copy'
 
-if not os.path.exists(model_path):
-    os.makedirs(model_path, exist_ok=True)
-    model = SentenceTransformer('all-mpnet-base-v2')
-    model.save(model_path)
-else:
-    model = SentenceTransformer(model_path)
+from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('all-mpnet-base-v2')
 
 
 # --- Configuration ---
