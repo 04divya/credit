@@ -1,8 +1,12 @@
 import os
 os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
+# Fix for PyTorch + Streamlit + asyncio environment issue
 import asyncio
-asyncio.set_event_loop(asyncio.new_event_loop())
+try:
+    asyncio.get_running_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
 import streamlit as st
 from utils.file_utils import extract_text_from_file
