@@ -2,12 +2,8 @@ from sentence_transformers import SentenceTransformer, util
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load SentenceTransformer model only once
-# Use try-except for robustness in different environments
-try:
-    model = SentenceTransformer('models/all-mpnet-base-v2-copy')
-except Exception:
-    model = SentenceTransformer('all-mpnet-base-v2')  # fallback if local model not found
+# Load SentenceTransformer model only once:
+model = SentenceTransformer('all-mpnet-base-v2')  # fallback if local model not found
 
 def calculate_bert_similarity(text1, text2):
     """Calculate cosine similarity using BERT sentence embeddings."""
