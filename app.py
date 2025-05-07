@@ -10,9 +10,8 @@ from utils.similarity_utils import calculate_bert_similarity, calculate_tfidf_si
 from utils.classification import classify_document
 from PIL import Image
 from sentence_transformers import SentenceTransformer
-model_path = 'models/all-mpnet-base-v2-copy'
-if not os.path.exists(model_path):
-    model.save(model_path)
+model = SentenceTransformer('all-mpnet-base-v2')
+model.save('models/all-mpnet-base-v2-copy')
 
 # --- Configuration ---
 UKM_RED = "#E60000"
