@@ -9,4 +9,4 @@ scikit-learn
 pymupdf
 torch
 datasets
-huggingface_hub[hf_xet]
+hf_xet
