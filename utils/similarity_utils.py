@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Load SentenceTransformer model only once
-model = SentenceTransformer('models/all-mpnet-base-v2')
+model = SentenceTransformer('all-mpnet-base-v2')
 
 def calculate_bert_similarity(text1, text2):
     # Encode texts
