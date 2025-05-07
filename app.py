@@ -1,3 +1,9 @@
+import os
+os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
+
+import asyncio
+asyncio.set_event_loop(asyncio.new_event_loop())
+
 import streamlit as st
 from utils.file_utils import extract_text_from_file
 from utils.similarity_utils import calculate_bert_similarity, calculate_tfidf_similarity
