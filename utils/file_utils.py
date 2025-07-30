@@ -11,7 +11,8 @@ def extract_text_from_file(file):
     text = ""
     try:
         if file.type == "application/pdf":
-            images = convert_from_bytes(file.read(), 500)
+            images = convert_from_bytes(file.read(), 500, first_page=1, last_page=3)  # Max 3 pages
+
         else:
             image = Image.open(file)
             images = [image]
