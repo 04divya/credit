@@ -4,9 +4,11 @@ numpy<2
 streamlit
 pytesseract
 pdf2image
-sentence-transformers
+sentence-transformers==2.2.2
+huggingface_hub==0.10.1
 scikit-learn
 pymupdf
 torch
 datasets
 hf_xet
+
