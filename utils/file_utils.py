@@ -11,16 +11,18 @@ def extract_text_from_file(file):
     text = ""
     try:
         if file.type == "application/pdf":
-            images = convert_from_bytes(file.read(), 500, first_page=1, last_page=3)  # Max 3 pages
-
+            images = convert_from_bytes(file.read(), dpi=500, first_page=1, last_page=3)  # limit to 3 pages
         else:
             image = Image.open(file)
             images = [image]
 
         for page in images:
             processed = preprocess_image(page)
-            text += pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
+            page_text = pytesseract.image_to_string(processed, lang=TESSERACT_LANGUAGES)
+            text += page_text + "\n"
+
         return text
     except Exception as e:
         print(f"[OCR ERROR] {e}")
         return ""
+
