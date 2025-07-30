@@ -15,7 +15,7 @@ from utils.classification import classify_document
 from PIL import Image
 
 from sentence_transformers import SentenceTransformer
-model = SentenceTransformer('all-mpnet-base-v2', device='cpu')
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2', device='cpu')
 
 
 # --- Configuration ---
